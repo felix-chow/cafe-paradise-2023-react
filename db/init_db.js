@@ -1,8 +1,20 @@
+const { redirect } = require('express/lib/response');
 const {
   client,
   // declare your model imports here
   // for example, User
+  createUser
 } = require('./');
+
+const {
+  getAllMenuItems,
+  addMenuItem,
+} = require('./models/menu_items');
+
+const {
+  addMenuItemToOrder
+} = require('./models/order_menu_items');
+const { createOrder, addCategory, addCategoryToMenuItem } = require('./models');
 
 async function buildTables() {
   try {
@@ -16,10 +28,10 @@ async function buildTables() {
       DROP TABLE IF EXISTS menu_item_categories;
       DROP TABLE IF EXISTS order_menu_items;
       DROP TABLE IF EXISTS user_menu_items;
-      DROP TABLE IF EXISTS categories cascade;
-      DROP TABLE IF EXISTS orders cascade;
+      DROP TABLE IF EXISTS categories;
+      DROP TABLE IF EXISTS orders;
       DROP TABLE IF EXISTS menu_items;
-      DROP TABLE IF EXISTS users cascade;
+      DROP TABLE IF EXISTS users;
       DROP TYPE IF EXISTS "orderStatus";
     `)
 
@@ -44,7 +56,7 @@ async function buildTables() {
         description TEXT NOT NULL,
         "imageURL" VARCHAR(255) NOT NULL,
         "priceInCents" INTEGER NOT NULL,
-        "itemQuantity" INTEGER NOT NULL
+        "inventoryQuantity" INTEGER NOT NULL
       );
 
       CREATE TYPE "orderStatus" AS ENUM (
@@ -102,7 +114,6 @@ async function createInitialUsers() {
   console.log("Creating sample users...")
   try {
     const usersToCreate = [
-
       { email: 'lbrittain2o@nhs.uk', 
         password: '0wBosj788', 
         address: '19488 Dovetail Crossing', 
@@ -125,6 +136,7 @@ async function createInitialUsers() {
         isAdmin: false },
     ]
     const users = await Promise.all(usersToCreate.map(createUser))
+    console.log(usersToCreate);
     console.log("Finished creating sample users!")
   } catch (error) {
     console.error("Error creating sample users!")
@@ -141,42 +153,42 @@ async function createInitialMenuItems() {
       description: "A delicious cappuccino.",
       imageURL: "https://images.pexels.com/photos/433145/pexels-photo-433145.jpeg",
       priceInCents: 436,
-      itemQuantity: 2
+      inventoryQuantity: 2
     },
     {
       name: "Espresso",
       description: "A beautiful espresso.",
       imageURL: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
       priceInCents: 175,
-      itemQuantity: 3
+      inventoryQuantity: 3
     },
     {
       name: "Latte",
       description: "A sweet latte.",
-      imageURL: "https://images.pexels.com/photos/302904/pexels-photo-302904.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imageURL: "https://images.pexels.com/photos/894696/pexels-photo-894696.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
       priceInCents: 275,
-      itemQuantity: 5
+      inventoryQuantity: 5
     },
     {
       name: "Mocha",
       description: "A very delicious mocha.",
       imageURL: "https://media.istockphoto.com/id/157675911/photo/cappuccino-topped-with-swirls-of-chocolate-sauce.jpg?s=612x612&w=0&k=20&c=606NMYMjVnTmpSnJI537_IjW3lqfNJaH7Lc9Qg0BXPU=",
       priceInCents: 345,
-      itemQuantity: 4
+      inventoryQuantity: 4
     },
     {
-      name: "Cheese Breakfast Sandwich",
-      description: "A plant-based milk alternative.",
-      imageURL: "https://images.heb.com/is/image/HEBGrocery/002242160?fit=constrain,1&wid=800&hei=800&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0",
+      name: "Ham, Egg & Cheese Breakfast Sandwich",
+      description: "A juicy ham, egg, and cheese breakfast sandwich.",
+      imageURL: "https://iamhomesteader.com/wp-content/uploads/2022/02/breakfast-sandwich-2-480x270.jpg",
       priceInCents: 375,
-      itemQuantity: 10
+      inventoryQuantity: 10
     }, {
       name: "Lettuce Tomato Breakfast Sandwich",
-      description: "Meat or poultry item.",
-      imageURL: "https://www.marxfoods.com/images/organic-free-range-whole-chicken_organicfreerangewholechicken-1.jpg",
+      description: "A healthy luttice tomato breakfast sandwich.",
+      imageURL: "https://www.thekitchenmagpie.com/wp-content/uploads/images/2019/08/tomatosandwich.jpg",
       priceInCents: 345,
-      itemQuantity: 11
-    }]
+      inventoryQuantity: 11
+    },]
   const menu_items = await Promise.all(menuItemsToAdd.map(addMenuItem));
   console.log("Menu items seeded: ", menu_items)
   console.log("Finished seeding menu items.")
@@ -257,13 +269,13 @@ async function createInitialCategories() {
   const categoriesToCreate = [
     {
       id: "1",
-      name: "Hot Breakfast",
-      imageURL: "https://www.healthyeating.org/images/default-source/home-0.0/nutrition-topics-2.0/general-nutrition-wellness/2-2-2-3foodgroups_fruits_detailfeature.jpg?sfvrsn=64942d53_4",
+      name: "Hot Breakfasts",
+      imageURL: "https://media.istockphoto.com/id/533645537/photo/breakfast-with-bacon-eggs-pancakes-and-toast.jpg?s=612x612&w=0&k=20&c=TumrEwImmLi4TIVeirgynvTpHhyvt9LeiDXLci45NWg=",
     },
     {
       id: "2",
       name: "Hot Coffees",
-      imageURL: "https://www.healthyeating.org/images/default-source/home-0.0/nutrition-topics-2.0/general-nutrition-wellness/2-2-2-2foodgroups_vegetables_detailfeature.jpg?sfvrsn=226f1bc7_6",
+      imageURL: "https://media.istockphoto.com/id/467148153/photo/cup-of-coffee.jpg?b=1&s=170667a&w=0&k=20&c=iY-1rgOvvYARBOLY7vpOu7y-IiFKm9aIMJHlpcZAXxQ=",
     }]
   await Promise.all(categoriesToCreate.map(category => addCategory({ name: category.name, imageURL: category.imageURL })));
   console.log("Categories created")

@@ -1,3 +1,7 @@
+**Use this template for login/registration**
+
+**Don't forget to use UseEffect in App.js or else the login/registration won't work!**
+
 # Let's Build a Full Stack Application
 
 This full stack app boilerplate consists of:
