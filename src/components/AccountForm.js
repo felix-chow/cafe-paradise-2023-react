@@ -45,7 +45,7 @@ const AccountForm = ({ setToken, cart, setCart, userInfo }) => {
     return (
         <div className="card">
             <div className="container">
-                <h1 className="text-center text-light bg-secondary">{action === 'login' ? 'Log In' : 'Sign Up'}</h1>
+                <h1 className="text-center text-dark">{action === 'login' ? 'Log In' : 'Sign Up'}</h1>
 
                 <form onSubmit={handleSubmit}>
                     {/* <!-- Email input --> */}
@@ -75,7 +75,7 @@ const AccountForm = ({ setToken, cart, setCart, userInfo }) => {
                                     Already a member?
                                 </p>
                                 <button className="btn btn-white btn-block mb-4 text-center">
-                                    <Link to="/users/login">Log In</Link>
+                                    <Link className="text-decoration-none" to="/users/login">Log In</Link>
                                 </button>
                             </div>
                         </>
